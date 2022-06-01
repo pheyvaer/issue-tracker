@@ -1,0 +1,30 @@
+{
+  "name": "issue-tracker",
+  "version": "0.0.1",
+  "description": "Issue tracker combines public GitHub issues with private annotations.",
+  "main": "index.js",
+  "scripts": {
+    "prestart": "npx webpack",
+    "start": "npx http-server .",
+    "watch": "npx webpack serve -c ./webpack.dev.config.js --static ."
+  },
+  "author": "Pieter Heyvaert (https://pieterheyvaert.com)",
+  "license": "MIT",
+  "devDependencies": {
+    "@babel/core": "^7.17.2",
+    "@babel/plugin-transform-runtime": "^7.17.0",
+    "@babel/preset-env": "^7.16.11",
+    "http-server": "^14.1.0",
+    "node-polyfill-webpack-plugin": "^1.1.4",
+    "webpack": "^5.68.0",
+    "webpack-cli": "^4.9.2",
+    "webpack-dev-server": "^4.7.4"
+  },
+  "dependencies": {
+    "cheetah-grid": "^1.7.3",
+    "@inrupt/solid-client-authn-browser": "^1.11.7",
+    "rdf-parse": "^1.9.1",
+    "readable-web-to-node-stream": "^3.0.2",
+    "jsonld": "^5.2.0"
+  }
+}

@@ -98,6 +98,7 @@ async function loginAndFetch(oidcIssuer, solidFetch) {
           }},
         {field: "assignee", caption: "Assignee", width: 200, sort: true},
         {field: "type", caption: "Type", width: 100, sort: true},
+        {field: "state", caption: "State", width: 100, sort: true},
         {field: "labels", caption: "Labels", width: 250, sort: true},
         {field: "dueDate", caption: "Due date", width: 100, action: 'input', sort: true},
         {field: "projects", caption: "Projects", width: 250, action: 'input', sort: true},

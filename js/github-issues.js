@@ -22,10 +22,10 @@ export async function convertIssuesToGridRecords(issues, solidFetch, storageLoca
         title: issue.title,
         assignee: issue.assignee ? issue.assignee.login : null,
         number: issue.number,
-        state: issue.state,
+        state: getState(issue),
         type: getTypeOfIssue(issue),
         url: issue.url,
-        labels: removeTypeFromLabels(issue.labels),
+        labels: removeRedundantLabels(issue.labels),
         creator: issue.user.login,
         githubUrl: issue.html_url,
         projects,
@@ -54,7 +54,21 @@ function getTypeOfIssue(issue) {
   }
 }
 
-function removeTypeFromLabels(labels) {
+function removeRedundantLabels(labels) {
   labels = labels.map(label => label.name);
-  return labels.filter(label => label !== 'challenge' && label !== 'scenario');
+  return labels.filter(label => label !== 'challenge' && label !== 'scenario' && label !== 'completed');
+}
+
+function isCompleted(issue) {
+  const labels = issue.labels.map(label => label.name);
+  return labels.includes('completed');
+}
+
+function getState(issue) {
+  if (isCompleted(issue)) {
+    return 'Completed';
+  } else {
+    const {state} = issue;
+    return state[0].toUpperCase() + state.substring(1);
+  }
 }

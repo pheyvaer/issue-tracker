@@ -65,8 +65,10 @@ async function loginAndFetch(oidcIssuer, solidFetch) {
     document.getElementById('current-user').innerText = 'Welcome ' + name;
     document.getElementById('current-user').classList.remove('hidden');
     document.getElementById('storage-location-container').classList.remove('hidden');
+    document.getElementById('status-message').classList.remove('hidden');
     document.getElementById('webid-form').classList.add('hidden');
 
+    document.getElementById('status-message').innerText = 'Loading issues from GitHub and annotations from pod.';
     const issues = await getIssues('SolidLabResearch', 'Challenges');
     const storageLocationUrl = document.getElementById('storage-location').value;
     const records = await convertIssuesToGridRecords(issues, solidFetch, storageLocationUrl);
@@ -107,10 +109,14 @@ async function loginAndFetch(oidcIssuer, solidFetch) {
     const {
       CHANGED_VALUE,
     } = cheetahGrid.ListGrid.EVENT_TYPE;
-    grid.listen(CHANGED_VALUE, (...args) => {
+    grid.listen(CHANGED_VALUE, async (...args) => {
       console.log(CHANGED_VALUE, args);
-      updateAnnotationsForIssue({issueUrl: args[0].record.url, field: args[0].field, data: args[0].value, oldValue: args[0].oldValue, storageLocationUrl, solidFetch});
+      document.getElementById('status-message').innerText = 'Saving to pod.';
+      await updateAnnotationsForIssue({issueUrl: args[0].record.url, field: args[0].field, data: args[0].value, oldValue: args[0].oldValue, storageLocationUrl, solidFetch});
+      document.getElementById('status-message').innerText = 'All is saved.';
     });
+
+    document.getElementById('status-message').innerText = 'All is saved.';
   }
 }
 

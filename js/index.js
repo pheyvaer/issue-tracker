@@ -5,6 +5,7 @@ import {fetch, handleIncomingRedirect, getDefaultSession, login} from '@inrupt/s
 import {getMostRecentWebID, getPersonName, getRDFasJson, setMostRecentWebID} from "./utils";
 
 const ALL_SAVED = 'All data is saved.';
+let settings = {}
 
 window.onload = async () => {
   let solidFetch = fetch;
@@ -12,6 +13,15 @@ window.onload = async () => {
   document.getElementById('log-in-btn').addEventListener('click', () => {
     clickLogInBtn(solidFetch)
   });
+
+  const queryString = window.location.search;
+  const urlParams = new URLSearchParams(queryString);
+  const storageLocationUrl = urlParams.get('location') || 'https://pheyvaer.pod.knows.idlab.ugent.be/profile/issue-tracker';
+  const githubOwner = urlParams.get('githubOwner') || 'SolidLabResearch';
+  const githubRepo = urlParams.get('githubRepo') || 'Challenges';
+
+  document.getElementById('storage-location').value = storageLocationUrl;
+  settings = {githubOwner, githubRepo};
 
   const webIDInput = document.getElementById('webid');
   webIDInput.value = getMostRecentWebID();
@@ -71,7 +81,7 @@ async function loginAndFetch(oidcIssuer, solidFetch) {
     document.getElementById('webid-form').classList.add('hidden');
 
     document.getElementById('status-message').innerText = 'Loading issues from GitHub and annotations from pod.';
-    const issues = await getIssues('SolidLabResearch', 'Challenges');
+    const issues = await getIssues(settings.githubOwner, settings.githubRepo);
     const storageLocationUrl = document.getElementById('storage-location').value;
     const records = await convertIssuesToGridRecords(issues, solidFetch, storageLocationUrl);
     //console.log(records);

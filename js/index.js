@@ -4,6 +4,8 @@ import {updateAnnotationsForIssue} from "./annotations";
 import {fetch, handleIncomingRedirect, getDefaultSession, login} from '@inrupt/solid-client-authn-browser';
 import {getMostRecentWebID, getPersonName, getRDFasJson, setMostRecentWebID} from "./utils";
 
+const ALL_SAVED = 'All data is saved.';
+
 window.onload = async () => {
   let solidFetch = fetch;
 
@@ -79,14 +81,18 @@ async function loginAndFetch(oidcIssuer, solidFetch) {
       parentElement: document.querySelector("#sample"),
       // Header definition
       header: [
-        {field: "title", caption: "Title", width: 250},
-        {field: "assignee", caption: "Assignee", width: 200},
-        {field: "type", caption: "Type", width: 100},
-        {field: "labels", caption: "Labels", width: 250},
-        {field: "dueDate", caption: "Due date", width: 100, action: 'input'},
-        {field: "projects", caption: "Projects", width: 250, action: 'input'},
-        {field: "milestones", caption: "Milestones", width: 250, action: 'input'},
-        {field: "creator", caption: "Creator", width: 200},
+        {field: "title", caption: "Title", width: 250, sort: true,
+          columnType: "multilinetext",
+          style: {
+            autoWrapText: true,
+          }},
+        {field: "assignee", caption: "Assignee", width: 200, sort: true},
+        {field: "type", caption: "Type", width: 100, sort: true},
+        {field: "labels", caption: "Labels", width: 250, sort: true},
+        {field: "dueDate", caption: "Due date", width: 100, action: 'input', sort: true},
+        {field: "projects", caption: "Projects", width: 250, action: 'input', sort: true},
+        {field: "milestones", caption: "Milestones", width: 250, action: 'input', sort: true},
+        {field: "creator", caption: "Creator", width: 200, sort: true},
         {
           caption: 'Details',
           width: 180,
@@ -113,10 +119,10 @@ async function loginAndFetch(oidcIssuer, solidFetch) {
       console.log(CHANGED_VALUE, args);
       document.getElementById('status-message').innerText = 'Saving to pod.';
       await updateAnnotationsForIssue({issueUrl: args[0].record.url, field: args[0].field, data: args[0].value, oldValue: args[0].oldValue, storageLocationUrl, solidFetch});
-      document.getElementById('status-message').innerText = 'All is saved.';
+      document.getElementById('status-message').innerText = ALL_SAVED;
     });
 
-    document.getElementById('status-message').innerText = 'All is saved.';
+    document.getElementById('status-message').innerText = ALL_SAVED;
   }
 }
 

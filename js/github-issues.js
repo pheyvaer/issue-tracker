@@ -1,7 +1,7 @@
 import {getAnnotationsForIssue} from "./annotations";
 
 export async function getIssues(owner, repo) {
-  const response = await fetch(`https://api.github.com/repos/${owner}/${repo}/issues`,
+  const response = await fetch(`https://api.github.com/repos/${owner}/${repo}/issues?per_page=100&state=all`,
     {
       headers: {
         'Accept': 'application/vnd.github.v3+json'
@@ -16,22 +16,25 @@ export async function getIssues(owner, repo) {
 export async function convertIssuesToGridRecords(issues, solidFetch, storageLocationUrl) {
   const records = [];
   for (const issue of issues) {
-    const {projects, dueDate, milestones} = await getAnnotationsForIssue(issue.url, solidFetch, storageLocationUrl);
-    const record = {
-      title: issue.title,
-      assignee: issue.assignee ? issue.assignee.login : null,
-      state: issue.state,
-      type: getTypeOfIssue(issue),
-      url: issue.url,
-      labels: removeTypeFromLabels(issue.labels),
-      creator: issue.user.login,
-      githubUrl: issue.html_url,
-      projects,
-      dueDate,
-      milestones
-    };
+    if (!issue.pull_request) {
+      const {projects, dueDate, milestones} = await getAnnotationsForIssue(issue.url, solidFetch, storageLocationUrl);
+      const record = {
+        title: issue.title,
+        assignee: issue.assignee ? issue.assignee.login : null,
+        number: issue.number,
+        state: issue.state,
+        type: getTypeOfIssue(issue),
+        url: issue.url,
+        labels: removeTypeFromLabels(issue.labels),
+        creator: issue.user.login,
+        githubUrl: issue.html_url,
+        projects,
+        dueDate,
+        milestones
+      };
 
-    records.push(record);
+      records.push(record);
+    }
   }
 
   return records;

@@ -35,3 +35,12 @@ button {
 #storage-location-message {
     padding-left: 15px;
 }
+
+#reload-grid-container {
+    margin-top: 15px;
+}
+
+#grid {
+    height: 700px;
+    /*border: solid 1px #ddd;*/
+}

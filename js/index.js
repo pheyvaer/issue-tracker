@@ -15,6 +15,10 @@ window.onload = async () => {
     clickLogInBtn(solidFetch)
   });
 
+  document.getElementById('reload-grid-btn').addEventListener('click', () => {
+    setUpGrid({solidFetch, storageLocationUrl, canWriteToStorageLocation: settings.canWriteToStorageLocation});
+  });
+
   const queryString = window.location.search;
   const urlParams = new URLSearchParams(queryString);
   const storageLocationUrl = urlParams.get('location') || 'https://pheyvaer.pod.knows.idlab.ugent.be/profile/issue-tracker';
@@ -64,7 +68,8 @@ async function loginAndFetch(oidcIssuer, solidFetch) {
   } else {
     const webid = getDefaultSession().info.webId;
     const storageLocationUrl = document.getElementById('storage-location').value;
-    const canWriteToStorageLocation = await canWriteToResource(storageLocationUrl, solidFetch)
+    const canWriteToStorageLocation = await canWriteToResource(storageLocationUrl, solidFetch);
+    settings.canWriteToStorageLocation = canWriteToStorageLocation;
 
     const frame = {
       "@context": {
@@ -85,29 +90,12 @@ async function loginAndFetch(oidcIssuer, solidFetch) {
     document.getElementById('storage-location-container').classList.remove('hidden');
     document.getElementById('status-message').classList.remove('hidden');
     document.getElementById('webid-form').classList.add('hidden');
-    document.getElementById('status-message').innerText = 'Loading issues from GitHub and annotations from pod.';
 
     if (!canWriteToStorageLocation) {
       document.getElementById('storage-location-message').classList.remove('hidden');
     }
 
-    const issues = await getIssues(settings.githubOwner, settings.githubRepo);
-    const records = await convertIssuesToGridRecords(issues, solidFetch, storageLocationUrl);
-    //console.log(records);
-
-    const grid = getGrid(records, canWriteToStorageLocation);
-
-    const {
-      CHANGED_VALUE,
-    } = cheetahGrid.ListGrid.EVENT_TYPE;
-    grid.listen(CHANGED_VALUE, async (...args) => {
-      console.log(CHANGED_VALUE, args);
-      document.getElementById('status-message').innerText = 'Saving to pod.';
-      await updateAnnotationsForIssue({issueUrl: args[0].record.url, field: args[0].field, data: args[0].value, oldValue: args[0].oldValue, storageLocationUrl, solidFetch});
-      document.getElementById('status-message').innerText = ALL_SAVED;
-    });
-
-    document.getElementById('status-message').innerText = ALL_SAVED;
+    setUpGrid({solidFetch, storageLocationUrl, canWriteToStorageLocation});
   }
 }
 
@@ -146,4 +134,28 @@ async function clickLogInBtn(solidFetch) {
   } else {
     document.getElementById('no-oidc-issuer-error').classList.remove('hidden');
   }
+}
+
+async function setUpGrid(options) {
+  document.getElementById('status-message').innerText = 'Loading issues from GitHub and annotations from pod.';
+  document.getElementById('grid').innerHTML = '';
+
+  const {solidFetch, storageLocationUrl, canWriteToStorageLocation} = options;
+  const issues = await getIssues(settings.githubOwner, settings.githubRepo);
+  const records = await convertIssuesToGridRecords(issues, solidFetch, storageLocationUrl);
+  //console.log(records);
+
+  const grid = getGrid(records, canWriteToStorageLocation);
+
+  const {
+    CHANGED_VALUE,
+  } = cheetahGrid.ListGrid.EVENT_TYPE;
+  grid.listen(CHANGED_VALUE, async (...args) => {
+    console.log(CHANGED_VALUE, args);
+    document.getElementById('status-message').innerText = 'Saving to pod.';
+    await updateAnnotationsForIssue({issueUrl: args[0].record.url, field: args[0].field, data: args[0].value, oldValue: args[0].oldValue, storageLocationUrl, solidFetch});
+    document.getElementById('status-message').innerText = ALL_SAVED;
+  });
+
+  document.getElementById('status-message').innerText = ALL_SAVED;
 }

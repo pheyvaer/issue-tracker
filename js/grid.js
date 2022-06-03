@@ -5,7 +5,7 @@ export function getGrid(records, canWrite) {
 
   return new cheetahGrid.ListGrid({
     // Parent element on which to place the grid
-    parentElement: document.querySelector("#sample"),
+    parentElement: document.querySelector("#grid"),
     header,
     records,
     frozenColCount: 1,

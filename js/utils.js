@@ -116,3 +116,18 @@ async function frameFromQuads(quads, frame) {
   objects["@graph"].push(Object.values(graphs));
   return jsonld.frame(objects, frame);
 }
+
+export async function canWriteToResource(resource, solidFetch) {
+  const response = await solidFetch(resource,
+    {
+      method: 'HEAD'
+    });
+
+  const header = response.headers.get('wac-allow');
+
+  if (header) {
+    return header.includes('write');
+  }
+
+  return false;
+}

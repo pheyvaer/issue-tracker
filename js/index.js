@@ -2,7 +2,8 @@ import * as cheetahGrid from "cheetah-grid";
 import {getIssues, convertIssuesToGridRecords} from './github-issues'
 import {updateAnnotationsForIssue} from "./annotations";
 import {fetch, handleIncomingRedirect, getDefaultSession, login} from '@inrupt/solid-client-authn-browser';
-import {getMostRecentWebID, getPersonName, getRDFasJson, setMostRecentWebID} from "./utils";
+import {canWriteToResource, getMostRecentWebID, getPersonName, getRDFasJson, setMostRecentWebID} from "./utils";
+import {getGrid} from "./grid";
 
 const ALL_SAVED = 'All data is saved.';
 let settings = {}
@@ -83,46 +84,11 @@ async function loginAndFetch(oidcIssuer, solidFetch) {
     document.getElementById('status-message').innerText = 'Loading issues from GitHub and annotations from pod.';
     const issues = await getIssues(settings.githubOwner, settings.githubRepo);
     const storageLocationUrl = document.getElementById('storage-location').value;
+    const canWriteToStorageLocation = await canWriteToResource(storageLocationUrl, solidFetch)
     const records = await convertIssuesToGridRecords(issues, solidFetch, storageLocationUrl);
     //console.log(records);
-    // initialize
-    const grid = new cheetahGrid.ListGrid({
-      // Parent element on which to place the grid
-      parentElement: document.querySelector("#sample"),
-      // Header definition
-      header: [
-        {field: "title", caption: "Title", width: 250, sort: true,
-          columnType: "multilinetext",
-          style: {
-            autoWrapText: true,
-          }},
-        {field: "assignee", caption: "Assignee", width: 200, sort: true},
-        {field: "type", caption: "Type", width: 100, sort: true},
-        {field: "state", caption: "State", width: 100, sort: true},
-        {field: "labels", caption: "Labels", width: 250, sort: true},
-        {field: "dueDate", caption: "Due date", width: 100, action: 'input', sort: true},
-        {field: "projects", caption: "Projects", width: 250, action: 'input', sort: true},
-        {field: "milestones", caption: "Milestones", width: 250, action: 'input', sort: true},
-        {field: "creator", caption: "Creator", width: 200, sort: true},
-        {field: "number", caption: "Number", width: 80, sort: true},
-        {
-          caption: 'Details',
-          width: 180,
-          columnType: new cheetahGrid.columns.type.ButtonColumn({
-            caption: "GitHub",
-          }),
-          action: new cheetahGrid.columns.action.ButtonAction({
-            action(rec) {
-              window.open(rec.githubUrl, '_blank');
-            },
-          })
-        }
-      ],
-      // Array data to be displayed on the grid
-      records,
-      // Column fixed position
-      frozenColCount: 1,
-    });
+
+    const grid = getGrid(records, canWriteToStorageLocation);
 
     const {
       CHANGED_VALUE,

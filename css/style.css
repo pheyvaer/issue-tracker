@@ -24,10 +24,14 @@ label[for="webid"], label[for="storage-location"] {
     margin-right: 15px;
 }
 
-#webid-form, #current-user, #status-message, #storage-location-container {
+#webid-form, #current-user, #status-message, #storage-location-container, #github-info-container, #info {
     padding-bottom: 15px;
 }
 
 button {
     font-size: 20px;
+}
+
+#storage-location-message {
+    padding-left: 15px;
 }

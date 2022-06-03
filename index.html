@@ -13,9 +13,16 @@
     <button id="log-in-btn">Log in</button>
 </div>
 <div id="current-user" class="hidden"></div>
+<div id="info" class="hidden">
+    All data about the issues from the repository <span id="github-info"></span> is loaded from GitHub,
+    except for the due dates, projects, and milestones.
+    This data is loaded from the location below.
+    If you have write-access to this location then you can edit the due dates, projects, and milestones.
+</div>
 <div id="storage-location-container" class="hidden">
     <label for="storage-location">Storage location</label>
     <input type="text" id="storage-location" placeholder="Enter a location on your pod.">
+    <span id="storage-location-message" class="hidden">You can only read from this location.</span>
 </div>
 <div id="status-message" class="hidden">Loading.</div>
 <div id="sample" style="height: 700px; border: solid 1px #ddd;"></div>

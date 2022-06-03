@@ -63,6 +63,9 @@ async function loginAndFetch(oidcIssuer, solidFetch) {
     }
   } else {
     const webid = getDefaultSession().info.webId;
+    const storageLocationUrl = document.getElementById('storage-location').value;
+    const canWriteToStorageLocation = await canWriteToResource(storageLocationUrl, solidFetch)
+
     const frame = {
       "@context": {
         "@vocab": "http://xmlns.com/foaf/0.1/",
@@ -77,14 +80,18 @@ async function loginAndFetch(oidcIssuer, solidFetch) {
 
     document.getElementById('current-user').innerText = 'Welcome ' + name;
     document.getElementById('current-user').classList.remove('hidden');
+    document.getElementById('github-info').innerText = `${settings.githubOwner}/${settings.githubRepo}`;
+    document.getElementById('info').classList.remove('hidden');
     document.getElementById('storage-location-container').classList.remove('hidden');
     document.getElementById('status-message').classList.remove('hidden');
     document.getElementById('webid-form').classList.add('hidden');
-
     document.getElementById('status-message').innerText = 'Loading issues from GitHub and annotations from pod.';
+
+    if (!canWriteToStorageLocation) {
+      document.getElementById('storage-location-message').classList.remove('hidden');
+    }
+
     const issues = await getIssues(settings.githubOwner, settings.githubRepo);
-    const storageLocationUrl = document.getElementById('storage-location').value;
-    const canWriteToStorageLocation = await canWriteToResource(storageLocationUrl, solidFetch)
     const records = await convertIssuesToGridRecords(issues, solidFetch, storageLocationUrl);
     //console.log(records);
 

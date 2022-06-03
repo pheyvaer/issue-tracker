@@ -13,10 +13,10 @@ export function getGrid(records, canWrite) {
 }
 
 function _getHeaders(canWrite) {
-  let lock = ' 🔒';
+  let icon = ' 🔒';
 
   if (canWrite) {
-    lock = '';
+    icon = ' ✏️';
   }
 
   return [
@@ -29,9 +29,9 @@ function _getHeaders(canWrite) {
     {field: "type", caption: "Type", width: 100, sort: true},
     {field: "state", caption: "State", width: 100, sort: true},
     {field: "labels", caption: "Labels", width: 250, sort: true},
-    {field: "dueDate", caption: `Due date${lock}`, width: canWrite ? 100: 115, action: canWrite ? 'input' : null, sort: true},
-    {field: "projects", caption: `Projects${lock}`, width: 250, action: canWrite ? 'input' : null, sort: true},
-    {field: "milestones", caption: `Milestones${lock}`, width: 250, action: canWrite ? 'input' : null, sort: true},
+    {field: "dueDate", caption: `Due date${icon}`, width: 115, action: canWrite ? 'input' : null, sort: true},
+    {field: "projects", caption: `Projects${icon}`, width: 250, action: canWrite ? 'input' : null, sort: true},
+    {field: "milestones", caption: `Milestones${icon}`, width: 250, action: canWrite ? 'input' : null, sort: true},
     {field: "creator", caption: "Creator", width: 200, sort: true},
     {field: "number", caption: "Number", width: 80, sort: true},
     {

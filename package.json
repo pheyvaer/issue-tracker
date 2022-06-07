@@ -21,10 +21,11 @@
     "webpack-dev-server": "^4.7.4"
   },
   "dependencies": {
-    "cheetah-grid": "^1.7.3",
     "@inrupt/solid-client-authn-browser": "^1.11.7",
+    "cheetah-grid": "^1.7.3",
+    "jsonld": "^5.2.0",
     "rdf-parse": "^1.9.1",
     "readable-web-to-node-stream": "^3.0.2",
-    "jsonld": "^5.2.0"
+    "wac-allow": "^1.0.0"
   }
 }

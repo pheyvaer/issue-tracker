@@ -1,6 +1,7 @@
 import rdfParser from "rdf-parse";
 import jsonld from 'jsonld';
 import { ReadableWebToNodeStream } from 'readable-web-to-node-stream';
+import * as WacAllow from 'wac-allow';
 
 export function getMostRecentWebID() {
   return window.localStorage.getItem('mostRecentWebID');
@@ -123,11 +124,6 @@ export async function canWriteToResource(resource, solidFetch) {
       method: 'HEAD'
     });
 
-  const header = response.headers.get('wac-allow');
-
-  if (header) {
-    return header.includes('write');
-  }
-
-  return false;
+  const { user } = WacAllow.parse(response);
+  return user.has('write');
 }

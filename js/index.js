@@ -7,6 +7,7 @@ import {getGrid} from "./grid";
 
 const ALL_SAVED = 'All data is saved.';
 let settings = {}
+let issues;
 
 window.onload = async () => {
   let solidFetch = fetch;
@@ -15,8 +16,24 @@ window.onload = async () => {
     clickLogInBtn(solidFetch)
   });
 
-  document.getElementById('reload-grid-btn').addEventListener('click', () => {
-    setUpGrid({solidFetch, storageLocationUrl, canWriteToStorageLocation: settings.canWriteToStorageLocation});
+  document.getElementById('reload-grid-btn').addEventListener('click', async () => {
+    issues = await setUpGrid({solidFetch, storageLocationUrl, canWriteToStorageLocation: settings.canWriteToStorageLocation});
+  });
+
+  document.getElementById('filter-ongoing-btn').addEventListener('click', () => {
+    const filteredIssues = getOngoingChallengeIssues();
+
+    setUpGrid({solidFetch, storageLocationUrl, canWriteToStorageLocation: settings.canWriteToStorageLocation, issues: filteredIssues});
+  });
+
+  document.getElementById('filter-approved-without-lead-btn').addEventListener('click', () => {
+    const filteredIssues = getApprovedChallengeWithoutLeadIssues();
+
+    setUpGrid({solidFetch, storageLocationUrl, canWriteToStorageLocation: settings.canWriteToStorageLocation, issues: filteredIssues});
+  });
+
+  document.getElementById('filter-all-btn').addEventListener('click', () => {
+    setUpGrid({solidFetch, storageLocationUrl, canWriteToStorageLocation: settings.canWriteToStorageLocation, issues});
   });
 
   const queryString = window.location.search;
@@ -95,7 +112,7 @@ async function loginAndFetch(oidcIssuer, solidFetch) {
       document.getElementById('storage-location-message').classList.remove('hidden');
     }
 
-    setUpGrid({solidFetch, storageLocationUrl, canWriteToStorageLocation});
+    issues = await setUpGrid({solidFetch, storageLocationUrl, canWriteToStorageLocation});
   }
 }
 
@@ -140,9 +157,14 @@ async function setUpGrid(options) {
   document.getElementById('status-message').innerText = 'Loading issues from GitHub and annotations from pod.';
   document.getElementById('grid').innerHTML = '';
 
-  const {solidFetch, storageLocationUrl, canWriteToStorageLocation} = options;
-  const issues = await getIssues(settings.githubOwner, settings.githubRepo);
+  let {solidFetch, storageLocationUrl, canWriteToStorageLocation, issues} = options;
+
+  if (!issues) {
+    issues = await getIssues(settings.githubOwner, settings.githubRepo);
+  }
+
   const records = await convertIssuesToGridRecords(issues, solidFetch, storageLocationUrl);
+
   //console.log(records);
 
   const grid = getGrid(records, canWriteToStorageLocation);
@@ -158,4 +180,23 @@ async function setUpGrid(options) {
   });
 
   document.getElementById('status-message').innerText = ALL_SAVED;
+  document.getElementById('filters').classList.remove('hidden');
+
+  return issues; // To reuse them later for filtering.
+}
+
+function getOngoingChallengeIssues() {
+  return issues.filter(issue => {
+    const labels = issue.labels.map(label => label.name);
+
+    return labels.includes('challenge') && labels.includes('ongoing');
+  })
+}
+
+function getApprovedChallengeWithoutLeadIssues() {
+  return issues.filter(issue => {
+    const labels = issue.labels.map(label => label.name);
+
+    return issue.state === 'open' && labels.includes('challenge') && labels.includes('proposal: approved ✅') && ! labels.includes('ongoing');
+  })
 }

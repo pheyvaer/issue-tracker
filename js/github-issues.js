@@ -50,7 +50,8 @@ function _getTypeOfIssue(issue) {
   }
 
   if (i < labels.length) {
-    return labels[i].name;
+    const {name} = labels[i];
+    return name[0].toUpperCase() + name.substring(1);
   }
 }
 

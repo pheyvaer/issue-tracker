@@ -7,7 +7,8 @@ const baseUrls = {
 
 const predicates = {
   projects: `https://data.knows.idlab.ugent.be/person/office/#relatedProject`,
-  milestones: `https://data.knows.idlab.ugent.be/person/office/#milestone`
+  milestones: `https://data.knows.idlab.ugent.be/person/office/#milestone`,
+  workPackages: `https://data.knows.idlab.ugent.be/person/office/#relatedWorkPackage`
 };
 
 export async function getAnnotationsForIssue(issueUrl, solidFetch, storageLocationUrl) {
@@ -15,7 +16,10 @@ export async function getAnnotationsForIssue(issueUrl, solidFetch, storageLocati
     "@context": {
       "@vocab": "https://data.knows.idlab.ugent.be/person/office/#",
       "relatedProject": {"@type": "@id"},
+      "relatedWorkPackage": {"@type": "@id"},
       "milestone": {"@type": "@id"},
+      "schema": "http://schema.org/",
+      "http://purl.org/vocab/frbr/core#partOf": {"@type": "@id"}
     },
     "@id": issueUrl
   };
@@ -26,29 +30,49 @@ export async function getAnnotationsForIssue(issueUrl, solidFetch, storageLocati
   data.relatedProject = collapseUrls(':', baseUrls.projects, assureArray(data.relatedProject));
   data.milestone = collapseUrls(':', baseUrls.milestones, assureArray(data.milestone));
 
-  return {projects: data.relatedProject,  milestones: data.milestone, dueDate: data.dueDate}
+  if (!data.relatedWorkPackage) {
+    data.relatedWorkPackage = [];
+  } else if (!Array.isArray(data.relatedWorkPackage)) {
+    data.relatedWorkPackage = [data.relatedWorkPackage];
+  }
+
+  data.relatedWorkPackage = data.relatedWorkPackage.filter(wp => wp['http://purl.org/vocab/frbr/core#partOf'] === baseUrls.projects + 'solidlab');
+  data.relatedWorkPackage = data.relatedWorkPackage.map(wp => wp['schema:identifier']);
+
+  return {projects: data.relatedProject,  milestones: data.milestone, dueDate: data.dueDate, workPackages: data.relatedWorkPackage}
 }
 
 export async function updateAnnotationsForIssue(options) {
   let {issueUrl, field, data, oldValue, solidFetch, storageLocationUrl} = options;
 
-  if (field === 'projects' || field === 'milestones') {
+  if (field === 'projects' || field === 'milestones' || field === 'workPackages') {
     if (!Array.isArray(data)) {
       data = data.split(',');
     }
 
-    data = expandUrls(':', baseUrls[field], data);
+    if (field === 'projects' || field === 'milestones') {
+      data = expandUrls(':', baseUrls[field], data);
+    }
+
     data = data.filter(a => a !== '');
 
     if (!Array.isArray(oldValue)) {
       oldValue = oldValue.split(',');
     }
 
-    oldValue = expandUrls(':', baseUrls[field], oldValue);
+    if (field === 'projects' || field === 'milestones') {
+      oldValue = expandUrls(':', baseUrls[field], oldValue);
+    }
+
     oldValue = oldValue.filter(a => a !== '');
 
-    const addedItems = data.filter(a => !oldValue.includes(a));
-    const removedItems = oldValue.filter(a => !data.includes(a));
+    let addedItems = data.filter(a => !oldValue.includes(a));
+    let removedItems = oldValue.filter(a => !data.includes(a));
+
+    if (field === 'workPackages') {
+      addedItems = addedItems.map(a => 'https://data.knows.idlab.ugent.be/work-package/solidlab-wp-' + a);
+      removedItems = removedItems.map(a => 'https://data.knows.idlab.ugent.be/work-package/solidlab-wp-' + a);
+    }
 
     await updateItems({
       addedItems,

@@ -17,7 +17,7 @@ export async function convertIssuesToGridRecords(issues, solidFetch, storageLoca
   const records = [];
   for (const issue of issues) {
     if (!issue.pull_request) {
-      const {projects, dueDate, milestones} = await getAnnotationsForIssue(issue.url, solidFetch, storageLocationUrl);
+      const {projects, dueDate, milestones, workPackages} = await getAnnotationsForIssue(issue.url, solidFetch, storageLocationUrl);
       const record = {
         title: issue.title,
         assignee: _getAssignees(issue),
@@ -30,7 +30,8 @@ export async function convertIssuesToGridRecords(issues, solidFetch, storageLoca
         githubUrl: issue.html_url,
         projects,
         dueDate,
-        milestones
+        milestones,
+        workPackages
       };
 
       records.push(record);

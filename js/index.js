@@ -32,6 +32,12 @@ window.onload = async () => {
     setUpGrid({solidFetch, storageLocationUrl, canWriteToStorageLocation: settings.canWriteToStorageLocation, issues: filteredIssues});
   });
 
+  document.getElementById('filter-completed-btn').addEventListener('click', () => {
+    const filteredIssues = getCompletedChallengeIssues();
+
+    setUpGrid({solidFetch, storageLocationUrl, canWriteToStorageLocation: settings.canWriteToStorageLocation, issues: filteredIssues});
+  });
+
   document.getElementById('filter-all-btn').addEventListener('click', () => {
     setUpGrid({solidFetch, storageLocationUrl, canWriteToStorageLocation: settings.canWriteToStorageLocation, issues});
   });
@@ -198,5 +204,13 @@ function getApprovedChallengeWithoutLeadIssues() {
     const labels = issue.labels.map(label => label.name);
 
     return issue.state === 'open' && labels.includes('challenge') && labels.includes('proposal: approved ✅') && ! labels.includes('ongoing');
+  })
+}
+
+function getCompletedChallengeIssues() {
+  return issues.filter(issue => {
+    const labels = issue.labels.map(label => label.name);
+
+    return labels.includes('challenge') && labels.includes('completion: approved ✅');
   })
 }

@@ -3,11 +3,16 @@ import {getIssues, convertIssuesToGridRecords} from './github-issues'
 import {updateAnnotationsForIssue} from "./annotations";
 import {fetch, handleIncomingRedirect, getDefaultSession, login} from '@inrupt/solid-client-authn-browser';
 import {canWriteToResource, getMostRecentWebID, getPersonName, getRDFasJson, setMostRecentWebID} from "./utils";
-import {getGrid} from "./grid";
+import {getDefaultVisibleColumns, getGrid} from "./grid";
 
 const ALL_SAVED = 'All data is saved.';
 let settings = {}
 let issues;
+let grid;
+let currentVisibleColumns = getDefaultVisibleColumns();
+let currentNonEmptyColumns = [];
+let currentShownIssues;
+let currentRecordsBeforeFilteringNonEmptyColumns;
 
 window.onload = async () => {
   let solidFetch = fetch;
@@ -17,29 +22,58 @@ window.onload = async () => {
   });
 
   document.getElementById('reload-grid-btn').addEventListener('click', async () => {
-    issues = await setUpGrid({solidFetch, storageLocationUrl, canWriteToStorageLocation: settings.canWriteToStorageLocation});
+    issues = await setUpGrid({solidFetch, storageLocationUrl, canWriteToStorageLocation: settings.canWriteToStorageLocation, visibleColumns: currentVisibleColumns, nonEmptyColumns: currentNonEmptyColumns});
   });
 
   document.getElementById('filter-ongoing-btn').addEventListener('click', () => {
     const filteredIssues = getOngoingChallengeIssues();
 
-    setUpGrid({solidFetch, storageLocationUrl, canWriteToStorageLocation: settings.canWriteToStorageLocation, issues: filteredIssues});
+    setUpGrid({solidFetch, storageLocationUrl, canWriteToStorageLocation: settings.canWriteToStorageLocation, issues: filteredIssues, visibleColumns: currentVisibleColumns});
   });
 
   document.getElementById('filter-approved-without-lead-btn').addEventListener('click', () => {
     const filteredIssues = getApprovedChallengeWithoutLeadIssues();
 
-    setUpGrid({solidFetch, storageLocationUrl, canWriteToStorageLocation: settings.canWriteToStorageLocation, issues: filteredIssues});
+    setUpGrid({solidFetch, storageLocationUrl, canWriteToStorageLocation: settings.canWriteToStorageLocation, issues: filteredIssues, visibleColumns: currentVisibleColumns});
   });
 
   document.getElementById('filter-completed-btn').addEventListener('click', () => {
     const filteredIssues = getCompletedChallengeIssues();
 
-    setUpGrid({solidFetch, storageLocationUrl, canWriteToStorageLocation: settings.canWriteToStorageLocation, issues: filteredIssues});
+    setUpGrid({solidFetch, storageLocationUrl, canWriteToStorageLocation: settings.canWriteToStorageLocation, issues: filteredIssues, visibleColumns: currentVisibleColumns});
   });
 
   document.getElementById('filter-all-btn').addEventListener('click', () => {
-    setUpGrid({solidFetch, storageLocationUrl, canWriteToStorageLocation: settings.canWriteToStorageLocation, issues});
+    setUpGrid({solidFetch, storageLocationUrl, canWriteToStorageLocation: settings.canWriteToStorageLocation, issues, visibleColumns: currentVisibleColumns});
+  });
+
+  document.getElementById('config-grid-btn').addEventListener('click', () => {
+    const $btn = document.getElementById('config-grid-btn');
+    const classList = document.getElementById('grid-config').classList;
+
+    if (classList.contains('hidden')) {
+      classList.remove('hidden');
+      $btn.innerText = 'Hide grid settings';
+    } else {
+      classList.add('hidden');
+      $btn.innerText = 'Show grid settings';
+    }
+  });
+
+  const allVisibleColumnCheckBox = document.querySelectorAll('#visible-columns input[type=checkbox]')
+
+  allVisibleColumnCheckBox.forEach((checkbox) => {
+    checkbox.addEventListener('change', (event) => {
+      checkboxVisibleColumnChanged(solidFetch, storageLocationUrl);
+    })
+  });
+
+  const allNonEmptyColumnCheckBox = document.querySelectorAll('#non-empty-columns input[type=checkbox]')
+
+  allNonEmptyColumnCheckBox.forEach((checkbox) => {
+    checkbox.addEventListener('change', (event) => {
+      checkboxNonEmptyColumnChanged(solidFetch, storageLocationUrl);
+    })
   });
 
   const queryString = window.location.search;
@@ -163,17 +197,25 @@ async function setUpGrid(options) {
   document.getElementById('status-message').innerText = 'Loading issues from GitHub and annotations from pod.';
   document.getElementById('grid').innerHTML = '';
 
-  let {solidFetch, storageLocationUrl, canWriteToStorageLocation, issues} = options;
+  let {solidFetch, storageLocationUrl, canWriteToStorageLocation, issues, visibleColumns, records, nonEmptyColumns} = options;
+  currentVisibleColumns = visibleColumns || currentVisibleColumns;
+  currentNonEmptyColumns = nonEmptyColumns || currentNonEmptyColumns;
 
-  if (!issues) {
-    issues = await getIssues(settings.githubOwner, settings.githubRepo);
+  if (!records) {
+    if (!issues) {
+      issues = await getIssues(settings.githubOwner, settings.githubRepo);
+    }
+
+    records = await convertIssuesToGridRecords(issues, solidFetch, storageLocationUrl);
   }
 
-  const records = await convertIssuesToGridRecords(issues, solidFetch, storageLocationUrl);
+  currentShownIssues = issues;
+  currentRecordsBeforeFilteringNonEmptyColumns = records;
+  records = getRecordsWithNonEmptyColumns(records, currentNonEmptyColumns);
 
   //console.log(records);
 
-  const grid = getGrid(records, canWriteToStorageLocation);
+  grid = getGrid(records, canWriteToStorageLocation, visibleColumns);
 
   const {
     CHANGED_VALUE,
@@ -213,4 +255,44 @@ function getCompletedChallengeIssues() {
 
     return labels.includes('challenge') && labels.includes('completion: approved ✅');
   })
+}
+
+function getRecordsWithNonEmptyColumns(records, columns) {
+  return records.filter(record => {
+    let i = 0
+
+    while (i < columns.length && record[columns[i]] && record[columns[i]] !== '' && (!Array.isArray(record[columns[i]]) || (Array.isArray(record[columns[i]]) && record[columns[i]].length > 0))) {
+      i ++;
+    }
+
+    return i === columns.length;
+  })
+}
+
+function checkboxVisibleColumnChanged(solidFetch, storageLocationUrl) {
+  const allCheckBox = document.querySelectorAll('#visible-columns input[type=checkbox]');
+  const visibleColumns = ['title', 'assignee', 'type', 'state', 'labels', 'dueDate', 'number', 'details'];
+
+  allCheckBox.forEach((checkbox) => {
+    if (checkbox.checked) {
+      visibleColumns.push(checkbox.getAttribute('data-grid-column'));
+    }
+  });
+
+  setUpGrid({solidFetch, storageLocationUrl, canWriteToStorageLocation: settings.canWriteToStorageLocation, issues, visibleColumns, records: grid.records});
+}
+
+function checkboxNonEmptyColumnChanged(solidFetch, storageLocationUrl) {
+  const allCheckBox = document.querySelectorAll('#non-empty-columns input[type=checkbox]');
+  const nonEmptyColumns = [];
+
+  allCheckBox.forEach((checkbox) => {
+    if (checkbox.checked) {
+      nonEmptyColumns.push(checkbox.getAttribute('data-grid-column'));
+    }
+  });
+
+  console.log(nonEmptyColumns);
+
+  setUpGrid({solidFetch, storageLocationUrl, canWriteToStorageLocation: settings.canWriteToStorageLocation, issues: currentShownIssues, nonEmptyColumns, records: currentRecordsBeforeFilteringNonEmptyColumns});
 }

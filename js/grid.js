@@ -1,7 +1,9 @@
 import cheetahGrid from "cheetah-grid";
 
-export function getGrid(records, canWrite) {
-  const header = _getHeaders(canWrite);
+const DEFAULT_VISIBLE_COLUMNS = ['title', 'assignee', 'type', 'state', 'labels', 'dueDate', 'projects', 'workPackages', 'milestones', 'creator', 'number', 'details'];
+
+export function getGrid(records, canWrite, visibleColumns) {
+  const header = _getHeaders(canWrite, visibleColumns);
 
   return new cheetahGrid.ListGrid({
     // Parent element on which to place the grid
@@ -12,14 +14,18 @@ export function getGrid(records, canWrite) {
   });
 }
 
-function _getHeaders(canWrite) {
+export function getDefaultVisibleColumns() {
+  return DEFAULT_VISIBLE_COLUMNS;
+}
+
+function _getHeaders(canWrite, visibleColumns = DEFAULT_VISIBLE_COLUMNS) {
   let icon = ' 🔒';
 
   if (canWrite) {
     icon = ' ✏️';
   }
 
-  return [
+  let headers = [
     {
       field: "title", caption: "Title", width: 250, sort: true,
       columnType: "multilinetext",
@@ -50,6 +56,10 @@ function _getHeaders(canWrite) {
       })
     }
   ];
+
+  headers = headers.filter(header => visibleColumns.includes(header.field) || visibleColumns.includes(header.caption.toLowerCase()));
+
+  return headers;
 }
 
 // function sortDueDates(order, col, grid) {

@@ -44,3 +44,11 @@ button {
 #filters {
     padding-bottom: 15px;
 }
+
+#visible-columns {
+    margin-bottom: 10px;
+}
+
+#grid-config {
+    margin-bottom: 10px;
+}

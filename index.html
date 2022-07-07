@@ -30,7 +30,34 @@
     <button id="filter-ongoing-btn">Show ongoing challenges</button>
     <button id="filter-approved-without-lead-btn">Show approved challenges without lead</button>
     <button id="filter-completed-btn">Show completed challenges</button>
+    <button id="config-grid-btn">Show grid settings</button>
     <button id="reload-grid-btn">Refresh</button>
+</div>
+<div id="grid-config" class="hidden">
+    <fieldset id="visible-columns">
+        <legend>Visible columns</legend>
+        <input type="checkbox" id="column-projects" name="column-projects" data-grid-column="projects"
+               checked>
+        <label for="column-projects">Projects</label>
+        <input type="checkbox" id="column-work-packages" name="column-work-packages" data-grid-column="workPackages"
+               checked>
+        <label for="column-work-packages">SolidLab WPs</label>
+        <input type="checkbox" id="column-milestones" name="column-milestones" data-grid-column="milestones"
+               checked>
+        <label for="column-milestones">Milestones</label>
+        <input type="checkbox" id="column-creator" name="column-creator" data-grid-column="creator"
+               checked>
+        <label for="column-creator">Creator</label>
+    </fieldset>
+    <fieldset id="non-empty-columns">
+        <legend>Show row only if value for</legend>
+        <input type="checkbox" id="column-assignee-value" name="column-assignee-value" data-grid-column="assignee">
+        <label for="column-assignee-value">Assignee</label>
+        <input type="checkbox" id="column-due-date-value" name="column-due-date-value" data-grid-column="dueDate">
+        <label for="column-due-date-value">Due date</label>
+        <input type="checkbox" id="column-work-packages-value" name="column-work-packages-value" data-grid-column="workPackages">
+        <label for="column-work-packages-value">SolidLab WPs</label>
+    </fieldset>
 </div>
 <div id="grid"></div>
 </body>

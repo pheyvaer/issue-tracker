@@ -7,5 +7,5 @@
   "client_uri": "URL",
   "logo_uri": "URL/img/logo.png",
   "http://schema.org/description": "View issues in a GitHub repo and add additional information which is stored in a Solid pod.",
-  "http://schema.org/category" : { "@id": "https://data.knows.idlab.ugent.be/person/office/application-categories#reference" }
+  "http://schema.org/category" : { "@id": "https://data.knows.idlab.ugent.be/person/office/application-categories#developer-tools" }
 }

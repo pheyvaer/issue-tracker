@@ -8,7 +8,7 @@
     "build:id:dev": "cat id-raw | npx replace URL http:\\/\\/localhost:8080 -z > id",
     "build:id:prod": "cat id-raw | npx replace URL https:\\/\\/solid-issue-tracker.netlify.app -z > id",
     "start": "npx http-server .",
-    "watch": "npx webpack serve -c ./webpack.dev.config.js --static ."
+    "watch": "npm run build:id:dev; npx webpack serve -c ./webpack.dev.config.js --static ."
   },
   "author": "Pieter Heyvaert (https://pieterheyvaert.com)",
   "license": "MIT",

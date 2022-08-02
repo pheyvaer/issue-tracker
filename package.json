@@ -4,7 +4,9 @@
   "description": "Issue tracker combines public GitHub issues with private annotations.",
   "main": "index.js",
   "scripts": {
-    "prestart": "npx webpack",
+    "prestart": "npm run build:id:prod; npx webpack",
+    "build:id:dev": "cat id-raw | npx replace URL http:\\/\\/localhost:8080 -z > id",
+    "build:id:prod": "cat id-raw | npx replace URL https:\\/\\/solid-issue-tracker.netlify.app -z > id",
     "start": "npx http-server .",
     "watch": "npx webpack serve -c ./webpack.dev.config.js --static ."
   },
@@ -18,7 +20,8 @@
     "node-polyfill-webpack-plugin": "^1.1.4",
     "webpack": "^5.68.0",
     "webpack-cli": "^4.9.2",
-    "webpack-dev-server": "^4.7.4"
+    "webpack-dev-server": "^4.7.4",
+    "replace": "^1.2.1"
   },
   "dependencies": {
     "@inrupt/solid-client-authn-browser": "^1.11.7",

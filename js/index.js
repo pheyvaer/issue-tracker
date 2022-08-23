@@ -2,7 +2,14 @@ import * as cheetahGrid from "cheetah-grid";
 import {getIssues, convertIssuesToGridRecords} from './github-issues'
 import {updateAnnotationsForIssue} from "./annotations";
 import {fetch, handleIncomingRedirect, getDefaultSession, login} from '@inrupt/solid-client-authn-browser';
-import {canWriteToResource, getMostRecentWebID, getPersonName, getRDFasJson, setMostRecentWebID} from "./utils";
+import {
+  canWriteToResource,
+  getLocation,
+  getMostRecentWebID,
+  getPersonName,
+  getRDFasJson, setLocation,
+  setMostRecentWebID
+} from "./utils";
 import {getDefaultVisibleColumns, getGrid} from "./grid";
 
 const ALL_SAVED = 'All data is saved.';
@@ -78,7 +85,8 @@ window.onload = async () => {
 
   const queryString = window.location.search;
   const urlParams = new URLSearchParams(queryString);
-  const storageLocationUrl = urlParams.get('location') || 'https://pheyvaer.pod.knows.idlab.ugent.be/profile/issue-tracker';
+  const storageLocationUrl = urlParams.get('location') || getLocation() || 'https://pheyvaer.pod.knows.idlab.ugent.be/profile/issue-tracker';
+  setLocation(storageLocationUrl);
   const githubOwner = urlParams.get('githubOwner') || 'SolidLabResearch';
   const githubRepo = urlParams.get('githubRepo') || 'Challenges';
 

@@ -11,6 +11,14 @@ export function setMostRecentWebID(webId) {
   return window.localStorage.setItem('mostRecentWebID', webId);
 }
 
+export function getLocation() {
+  return window.localStorage.getItem('storageLocationUrl');
+}
+
+export function setLocation(location) {
+  return window.localStorage.setItem('storageLocationUrl', location);
+}
+
 export function getRDFasJson(url, frame, fetch) {
   if (!fetch) {
     throw new Error('No fetch function is provided.');

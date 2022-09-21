@@ -39,7 +39,34 @@ export async function getAnnotationsForIssue(issueUrl, solidFetch, storageLocati
   data.relatedWorkPackage = data.relatedWorkPackage.filter(wp => wp['http://purl.org/vocab/frbr/core#partOf'] === baseUrls.projects + 'solidlab');
   data.relatedWorkPackage = data.relatedWorkPackage.map(wp => wp['schema:identifier']);
 
-  return {projects: data.relatedProject,  milestones: data.milestone, dueDate: data.dueDate, workPackages: data.relatedWorkPackage}
+  if (!data.priority) {
+    data.priority = [];
+  } else if (!Array.isArray(data.priority)) {
+    data.priority = [data.priority];
+  }
+
+  return {
+    projects: data.relatedProject,
+    milestones: data.milestone,
+    dueDate: data.dueDate,
+    workPackages: data.relatedWorkPackage,
+    dnbPriority: getDNBPriority(data.priority)
+  }
+}
+
+/**
+ * This function returns the priority of an issue for the DNB project.
+ * @param priorities - Array of priorities of an issue.
+ * @returns {null|*} - The priority for the DNB project or null if no priority is found.
+ */
+function getDNBPriority(priorities) {
+  for (const priority in priorities) {
+    if (priority['schema:agent'] === baseUrls.projects + 'dnb') {
+      return priority['priorityValue'];
+    }
+  }
+
+  return null;
 }
 
 export async function updateAnnotationsForIssue(options) {
@@ -84,6 +111,8 @@ export async function updateAnnotationsForIssue(options) {
     });
   } else if (field === 'dueDate') {
     await updateDueDate(options);
+  } else if (field === 'dnbPriority') {
+    await updateDNBPriority(options);
   }
 }
 
@@ -140,12 +169,14 @@ async function updateDueDate(options) {
     patch: `DELETE DATA {<${issueUrl}> <https://data.knows.idlab.ugent.be/person/office/#dueDate> "${oldValue}"}`
   });
 
-  // Add new due date.
-  await patch({
-    storageLocationUrl,
-    solidFetch,
-    patch: `INSERT DATA {<${issueUrl}> <https://data.knows.idlab.ugent.be/person/office/#dueDate> "${data}"}`
-  });
+  if (data) {
+    // Add new due date.
+    await patch({
+      storageLocationUrl,
+      solidFetch,
+      patch: `INSERT DATA {<${issueUrl}> <https://data.knows.idlab.ugent.be/person/office/#dueDate> "${data}"}`
+    });
+  }
 }
 
 async function updateItems(options) {
@@ -176,4 +207,43 @@ async function updateItems(options) {
     solidFetch,
     patch: ins
   });
+}
+
+async function updateDNBPriority(options) {
+  const {issueUrl, data, oldValue, solidFetch, storageLocationUrl} = options;
+
+  // Remove old DNB priority.
+  await patch({
+    storageLocationUrl,
+    solidFetch,
+    patch:
+      `PREFIX schema: <http://schema.org/>
+       PREFIX knows: <https://data.knows.idlab.ugent.be/person/office/#>
+       DELETE {
+         <${issueUrl}> knows:priority ?priority.
+         ?priority knows:priorityValue "${oldValue}";
+            schema:agent <${baseUrls.projects}dnb>.
+      } WHERE {
+        <${issueUrl}> knows:priority ?priority.
+         ?priority knows:priorityValue "${oldValue}";
+            schema:agent <${baseUrls.projects}dnb>.
+      }`
+  });
+
+  if (data) {
+    // Add new DNB priority.
+    const uuid = crypto.randomUUID();
+    await patch({
+      storageLocationUrl,
+      solidFetch,
+      patch: `
+       PREFIX schema: <http://schema.org/>
+       PREFIX knows: <https://data.knows.idlab.ugent.be/person/office/#>
+       INSERT DATA {
+         <${issueUrl}> knows:priority <#${uuid}>.
+         <#${uuid}> knows:priorityValue "${data}";
+            schema:agent <${baseUrls.projects}dnb>.
+      }`
+    });
+  }
 }

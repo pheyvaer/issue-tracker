@@ -1,6 +1,6 @@
 import cheetahGrid from "cheetah-grid";
 
-const DEFAULT_VISIBLE_COLUMNS = ['title', 'assignee', 'type', 'state', 'labels', 'dueDate', 'projects', 'workPackages', 'milestones', 'creator', 'number', 'details'];
+const DEFAULT_VISIBLE_COLUMNS = ['title', 'assignee', 'type', 'state', 'labels', 'dueDate', 'projects', 'workPackages', 'milestones', 'dnbPriority', 'creator', 'number', 'details'];
 
 export function getGrid(records, canWrite, visibleColumns) {
   const header = _getHeaders(canWrite, visibleColumns);
@@ -41,6 +41,7 @@ function _getHeaders(canWrite, visibleColumns = DEFAULT_VISIBLE_COLUMNS) {
     {field: "projects", caption: `Projects${icon}`, width: 250, action: canWrite ? 'input' : null, sort: true},
     {field: "workPackages", caption: `SolidLab WPs${icon}`, width: 150, action: canWrite ? 'input' : null, sort: true},
     {field: "milestones", caption: `Milestones${icon}`, width: 250, action: canWrite ? 'input' : null, sort: true},
+    {field: "dnbPriority", caption: `DNB priority${icon}`, width: 140, action: canWrite ? getPriorityInputEditor() : null, sort: true},
     {field: "creator", caption: "Creator", width: 200, sort: true},
     {field: "number", caption: "Number", width: 80, sort: true},
     {
@@ -60,6 +61,21 @@ function _getHeaders(canWrite, visibleColumns = DEFAULT_VISIBLE_COLUMNS) {
   headers = headers.filter(header => visibleColumns.includes(header.field) || visibleColumns.includes(header.caption.toLowerCase()));
 
   return headers;
+}
+
+/**
+ * This function returns an input editor that validates a priority.
+ * @returns {string|*}
+ */
+function getPriorityInputEditor() {
+  const valid = ['low', 'medium', 'high', ''];
+  return new cheetahGrid.columns.action.SmallDialogInputEditor({
+    validator(value) {
+      if (!valid.includes(value)) {
+        return `Please use "low", "medium", "high" or leave empty.`;
+      }
+    },
+  })
 }
 
 // function sortDueDates(order, col, grid) {

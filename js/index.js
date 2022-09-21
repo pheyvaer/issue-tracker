@@ -85,7 +85,7 @@ window.onload = async () => {
 
   const queryString = window.location.search;
   const urlParams = new URLSearchParams(queryString);
-  const storageLocationUrl = urlParams.get('location') || getLocation() || 'https://pheyvaer.pod.knows.idlab.ugent.be/profile/issue-tracker';
+  const storageLocationUrl = urlParams.get('location') || getLocation() || 'https://pheyvaer.pod.knows.idlab.ugent.be/profile/solidlab-issues-test';
   setLocation(storageLocationUrl);
   const githubOwner = urlParams.get('githubOwner') || 'SolidLabResearch';
   const githubRepo = urlParams.get('githubRepo') || 'Challenges';

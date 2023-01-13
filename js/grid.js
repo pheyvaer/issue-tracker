@@ -11,6 +11,7 @@ export function getGrid(records, canWrite, visibleColumns) {
     header,
     records,
     frozenColCount: 1,
+    defaultRowHeight: 70
   });
 }
 
